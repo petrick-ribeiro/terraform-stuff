@@ -75,18 +75,27 @@ resource "aws_key_pair" "foobar_auth" {
 
 # Create EC2 Instance
 resource "aws_instance" "dev_node" {
-  instance_type = "t2.micro"
-  ami           = data.aws_ami.server_ami.id
-  key_name = aws_key_pair.foobar_auth.id
+  instance_type          = "t2.micro"
+  ami                    = data.aws_ami.server_ami.id
+  key_name               = aws_key_pair.foobar_auth.id
   vpc_security_group_ids = [aws_security_group.foobar_sg.id]
-  subnet_id = aws_subnet.foobar_public_subnet.id
-  # user_data = file("") Script to atuomate instance configuration.
-
-  tags = {
-    Name = "dev-node"
-  }
+  subnet_id              = aws_subnet.foobar_public_subnet.id
+  user_data              = file("init.tpl") # Provide initial configuration
 
   root_block_device {
     volume_size = 10
+  }
+
+  provisioner "local-exec" { # Setting the SSH Configuration
+    command = templatefile("ssh-config.tpl", {
+      hostname     = self.public_ip,
+      user         = "ubuntu",
+      identityfile = "~/.ssh/terraform-key"
+    })
+    interpreter = ["bash", "-c"]
+  }
+
+  tags = {
+    Name = "dev-node"
   }
 }
