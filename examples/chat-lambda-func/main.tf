@@ -5,6 +5,12 @@ resource "aws_lambda_function" "lambda_chat" {
   role          = aws_iam_role.lambda_exec.arn
   handler       = "index.handler"
   runtime       = "nodejs16.x"
+
+  environment {
+    variables = {
+      API_ENDPOINT = aws_apigatewayv2_stage.chat_stage.invoke_url
+    }
+  }
 }
 
 resource "aws_lambda_permission" "api_gw" {
