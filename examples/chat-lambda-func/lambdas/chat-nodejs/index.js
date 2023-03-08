@@ -1,11 +1,21 @@
+require('dotenv').config()
 const AWS = require('aws-sdk')
 
-const ENDPOINT = process.env.API_ENDPOINT
+let ENDPOINT = process.env.API_ENDPOINT
+
+// Format the WebSocket enpoint.
+const regex = /^wss:\/\/([^\/]+)\/(.+?)\/?$/
+const match = regex.exec(ENDPOINT)
+if (match) {
+  const hostname = match[1];
+  const path = match[2];
+  ENDPOINT = `${hostname}/${path}/`;
+}
+
 const client = new AWS.ApiGatewayManagementApi({endpoint: ENDPOINT})
 const names = {};
 
 const { Configuration, OpenAIApi } = require("openai");
-require('dotenv').config()
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
